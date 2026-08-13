@@ -1,0 +1,13 @@
+name = "otc-live"
+main = "src/index.js"
+compatibility_date = "2024-11-06"
+
+# The LiveRoom Durable Object (one instance per show). Pages binds to this Worker
+# by name (script_name = "otc-live") and forwards authenticated WebSocket upgrades.
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["LiveRoom"]
+
+[vars]
+SITE_URL = "https://outlawtradingcards.com"
+# secret AUCTION_SECRET is set via: wrangler secret put AUCTION_SECRET -c live-worker/wrangler.toml

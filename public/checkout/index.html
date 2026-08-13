@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Checkout — OUTLAW TRADING CARDS</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg">
+<link rel="stylesheet" href="/assets/css/site.css">
+<script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+
+<div class="promo">Secure checkout · Authenticated cards ship insured</div>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="/">OUTLAW<span class="mark">·</span>CARDS</a>
+    <nav class="nav-links" id="nav-links">
+      <a href="/shop/">Shop</a><a href="/auctions/">Auctions</a><a href="/live/">Live</a><a href="/account/">Account</a>
+    </nav>
+    <div class="nav-right"><a class="icon-btn" href="/account/">Account</a>
+      <button class="burger" onclick="document.getElementById('nav-links').classList.toggle('open')">☰</button></div>
+  </div>
+</header>
+
+<section class="page-hero"><div class="wrap">
+  <p class="eyebrow">Checkout</p><h1>Review & Pay</h1>
+  <p class="lead">Buy your graded singles direct — no marketplace fees baked into the price.</p>
+</div></section>
+
+<section class="section-dark"><div class="wrap" id="root"><p style="text-align:center;color:var(--muted)">Loading…</p></div></section>
+
+<footer><div class="wrap"><div class="foot-bot"><span>© 2026 Outlaw Trading Cards.</span><span>Collect without permission.</span></div></div></footer>
+
+<script>
+const $=(s,el=document)=>el.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const api=async(url,opts)=>{const r=await fetch(url,{headers:{'Content-Type':'application/json'},...opts});
+  let d={};try{d=await r.json()}catch{} if(!r.ok)throw new Error(d.error||('Error '+r.status));return d;};
+const CART=JSON.parse(localStorage.getItem('otc_cart')||'[]');
+let _stripe=null,_cfg=null;
+
+async function boot(){
+  let me=null; try{me=(await api('/api/auth/me')).user;}catch{}
+  if(!me){ $('#root').innerHTML=`<div class="panel"><h2>Sign in to check out</h2>
+    <p class="sub">You need an account to buy. It takes a few seconds.</p>
+    <a class="btn" href="/account/">Sign In / Create Account</a></div>`; return; }
+  if(!CART.length){ $('#root').innerHTML=`<div class="panel"><h2>Your cart is empty</h2>
+    <p class="sub">Go pull something.</p><a class="btn" href="/shop/">Shop Cards</a></div>`; return; }
+  render(me);
+}
+
+function render(me){
+  const total=CART.reduce((s,c)=>s+(c.price||0),0);
+  $('#root').innerHTML=`
+    <div class="panel wide">
+      <h2>Your Cart</h2>
+      <div class="cl-list">${CART.map((c,i)=>`
+        <div class="cl-card">
+          <img class="thumb${c.image_url?'':' ph'}" src="${esc(c.image_url||'')}" ${c.image_url?'':'style="display:flex"'} alt="">
+          <div class="meta"><b>${esc(c.title)}</b><span>${esc(c.grade||'')} · ${esc(c.cat||c.category||'')}</span></div>
+          <div class="right"><b class="price">$${(c.price||0).toLocaleString()}</b>
+            <button class="linkbtn" style="color:#f3a3a9" onclick="removeItem(${i})">Remove</button></div>
+        </div>`).join('')}</div>
+      <div style="display:flex;justify-content:space-between;margin-top:16px;font-family:var(--head);text-transform:uppercase;letter-spacing:.08em">
+        <span>Total</span><span class="price">$${total.toLocaleString()}</span></div>
+    </div>
+    <div class="panel"><h2>Ship To</h2><div id="ship"><p style="color:var(--muted)">Loading…</p></div></div>
+    <div class="panel"><h2>Pay With</h2><div id="pay"><p style="color:var(--muted)">Loading…</p></div></div>
+    <div class="panel">
+      <button class="btn gold" id="place" onclick="placeOrder()" style="width:100%">Place Order · $${total.toLocaleString()}</button>
+      <div class="msg" id="ck-msg"></div>
+    </div>`;
+  loadShip(); loadPay();
+}
+function removeItem(i){CART.splice(i,1);localStorage.setItem('otc_cart',JSON.stringify(CART));boot();}
+
+async function loadShip(){
+  const el=$('#ship');
+  try{ const {shipping_profiles}=await api('/api/shipping');
+    if(!shipping_profiles.length){ el.innerHTML=`<p style="color:var(--muted)">No address yet. <a class="linkbtn" href="/account/">Add one in your account</a>, then come back.</p>`; return; }
+    el.innerHTML=`<select id="ship-sel" style="width:100%;background:var(--ink);color:#fff;border:1px solid var(--line);border-radius:4px;padding:12px">
+      ${shipping_profiles.map(p=>`<option value="${p.id}"${p.is_default?' selected':''}>${esc(p.name)} — ${esc(p.address1)}, ${esc(p.city)} ${esc(p.state)} ${esc(p.zip)}</option>`).join('')}
+    </select>`;
+  }catch(err){ el.innerHTML='<p class="msg err">'+esc(err.message)+'</p>'; }
+}
+
+async function loadPay(){
+  const el=$('#pay');
+  try{ _cfg=await api('/api/stripe/config'); }catch{ _cfg={enabled:false}; }
+  if(!_cfg.enabled){ el.innerHTML='<p style="color:var(--muted)">Card payments are being switched on — check back shortly.</p>'; return; }
+  if(!_stripe) _stripe=Stripe(_cfg.publishable_key);
+  try{ const {payment_methods}=await api('/api/payment-methods');
+    if(!payment_methods.length){ el.innerHTML=`<p style="color:var(--muted)">No saved card. <a class="linkbtn" href="/account/">Add one in your account</a>, then come back.</p>`; return; }
+    el.innerHTML=`<select id="pay-sel" style="width:100%;background:var(--ink);color:#fff;border:1px solid var(--line);border-radius:4px;padding:12px">
+      ${payment_methods.map(pm=>`<option value="${pm.id}"${pm.is_default?' selected':''}>${esc(pm.brand.toUpperCase())} •••• ${esc(pm.last4)} — exp ${String(pm.exp_month).padStart(2,'0')}/${pm.exp_year}</option>`).join('')}
+    </select><p style="color:var(--muted);font-size:.85rem;margin-top:8px"><a class="linkbtn" href="/account/">Manage cards</a></p>`;
+  }catch(err){ el.innerHTML='<p class="msg err">'+esc(err.message)+'</p>'; }
+}
+
+async function placeOrder(){
+  const m=$('#ck-msg'), btn=$('#place');
+  const pmSel=$('#pay-sel'), shipSel=$('#ship-sel');
+  if(!pmSel){ m.className='msg err'; m.textContent='Add a payment method first.'; return; }
+  m.className='msg'; btn.disabled=true; btn.textContent='Charging…';
+  try{
+    const body={ card_ids:CART.map(c=>c.id), payment_method_id:pmSel.value, shipping_profile_id: shipSel?shipSel.value:null };
+    let res=await api('/api/checkout',{method:'POST',body:JSON.stringify(body)});
+    if(res.status==='requires_action'){
+      const {error}=await _stripe.confirmCardPayment(res.client_secret);
+      if(error) throw new Error(error.message);
+      // confirmed; webhook finalizes the order shortly
+    }
+    localStorage.removeItem('otc_cart');
+    $('#root').innerHTML=`<div class="panel"><h2>🎉 Order placed</h2>
+      <p class="sub">Thanks — your cards are locked in. You'll get a shipping update by email.</p>
+      <a class="btn" href="/shop/">Keep Shopping</a></div>`;
+  }catch(err){ m.className='msg err'; m.textContent=err.message; btn.disabled=false; btn.textContent='Place Order'; }
+}
+
+boot();
+</script>
+</body>
+</html>

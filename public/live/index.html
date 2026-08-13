@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Live Breaks &amp; Stream — OUTLAW TRADING CARDS</title>
+<link rel="canonical" href="https://outlawtradingcards.com/live/">
+<meta property="og:title" content="Live Breaks &amp; Stream — OUTLAW TRADING CARDS">
+<meta property="og:description" content="Watch wax get ripped live. Buy break spots, bid live, and chat in real time — streamed right on outlawtradingcards.com.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://outlawtradingcards.com/live/">
+<meta property="og:site_name" content="Outlaw Trading Cards">
+<meta property="og:image" content="https://outlawtradingcards.com/assets/img/og-card.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Live Breaks &amp; Stream — OUTLAW TRADING CARDS">
+<meta name="twitter:description" content="Watch wax get ripped live. Buy break spots, bid live, and chat in real time — streamed right on outlawtradingcards.com.">
+<meta name="twitter:image" content="https://outlawtradingcards.com/assets/img/og-card.jpg">
+<meta name="description" content="Watch wax get ripped live. Buy break spots, bid live, and chat in real time — streamed right on outlawtradingcards.com.">
+<link rel="icon" href="/favicon.svg">
+<link rel="stylesheet" href="/assets/css/site.css">
+</head>
+<body>
+
+<div class="promo">🔴 LIVE NOW &nbsp;·&nbsp; Evolving Skies Booster Box Break &nbsp;·&nbsp; 6 spots left</div>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="/">OUTLAW<span class="mark">·</span>CARDS</a>
+    <nav class="nav-links" id="nav-links">
+      <a href="/shop/">Shop</a><a href="/auctions/">Auctions</a><a href="/live/" class="on">Live</a><a href="/about/">Our Story</a>
+    </nav>
+    <div class="nav-right">
+      <a class="live-pill" href="/live/"><span class="live-dot"></span>Live</a>
+      <a class="icon-btn" href="/account/">Account</a>
+      <button class="icon-btn" onclick="openDrawer()">Cart <span class="cart-count">0</span></button>
+      <button class="burger" onclick="toggleNav()" aria-label="Menu">☰</button>
+    </div>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="wrap">
+    <p class="eyebrow">The Live Room</p>
+    <h1>Ripped Live</h1>
+    <p class="lead">Watch the wax crack in real time, claim your spots, and bid live — all on our own stream, right here on the site.</p>
+    <button class="btn gold sm" id="notify-btn" onclick="enableNotifications()" style="margin-top:6px">🔔 Notify me when live</button>
+  </div>
+</section>
+
+<section class="section-dark">
+  <div class="wrap">
+    <div class="live-wrap">
+
+      <!-- STREAM COLUMN -->
+      <div>
+        <div class="player">
+          <span class="live-flag"><span class="live-dot"></span>Live</span>
+          <span class="viewer-count" id="viewers">👁 1,204 watching</span>
+          <div class="ph" id="player-ph">
+            <div class="play" onclick="startStream()"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+            <p style="font-family:var(--head);text-transform:uppercase;letter-spacing:.16em;font-size:.8rem;color:#c7c7cf">Tap to play the live stream</p>
+          </div>
+        </div>
+
+        <div class="stream-meta">
+          <span class="badge">Group Break · Pokémon</span>
+          <h2>Evolving Skies — Full Box Rip</h2>
+          <p class="lead">36 packs, 6 spots up for grabs. Every alt-art and secret rare goes to the spot it's pulled on. Buy in below, then watch your packs get cracked live.</p>
+        </div>
+
+        <!-- LIVE SINGLE-CARD AUCTION (2b) -->
+        <div class="live-lot" id="auction-panel" style="display:none;border-color:var(--gold)">
+          <img id="auc-img" style="width:60px;height:78px;object-fit:cover;border-radius:5px;background:var(--ink-3)" alt="">
+          <div style="flex:1">
+            <span class="card-cat">🔨 Live Auction</span>
+            <div class="card-title" id="auc-title" style="margin:2px 0 6px">—</div>
+            <div style="display:flex;gap:14px;align-items:baseline;flex-wrap:wrap">
+              <div class="price" id="auc-bid" style="font-size:1.3rem">$0</div>
+              <span id="auc-high" style="color:var(--muted);font-size:.82rem"></span>
+              <span id="auc-timer" class="pill review"></span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <input id="auc-amt" type="number" inputmode="numeric" placeholder="$"
+              style="width:104px;background:var(--ink);color:#fff;border:1px solid var(--line);border-radius:4px;padding:8px">
+            <button class="btn gold sm" onclick="placeLiveBid()">Bid</button>
+          </div>
+        </div>
+        <div id="admin-auction" style="display:none;margin:12px 0;padding:14px;border:1px dashed var(--gold);border-radius:10px">
+          <div style="font-family:var(--head);text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;color:var(--gold-2);margin-bottom:10px">⭐ Auctioneer controls</div>
+          <div id="admin-start" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+            <select id="ac-card" style="flex:1;min-width:180px;background:var(--ink);color:#fff;border:1px solid var(--line);border-radius:4px;padding:8px"></select>
+            <input id="ac-start" type="number" placeholder="Start $" style="width:88px;background:var(--ink);color:#fff;border:1px solid var(--line);border-radius:4px;padding:8px">
+            <input id="ac-dur" type="number" value="45" placeholder="sec" style="width:66px;background:var(--ink);color:#fff;border:1px solid var(--line);border-radius:4px;padding:8px">
+            <button class="btn sm" onclick="adminStartAuction()">Put on the Block</button>
+          </div>
+          <button class="btn ghost sm" id="admin-end" style="display:none;margin-top:8px" onclick="adminEndAuction()">End Auction Now</button>
+        </div>
+
+        <!-- LIVE BREAK (2c) -->
+        <div id="break-panel" style="display:none;margin:6px 0;padding:14px;border:1px solid var(--gold);border-radius:10px">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px">
+            <div><span class="card-cat">📦 Live Break</span><div class="card-title" id="brk-title" style="margin-top:2px">—</div></div>
+            <div class="price" id="brk-price" style="font-size:1.15rem">$0<small>per spot</small></div>
+          </div>
+          <div id="brk-fair" style="font-size:.7rem;color:var(--muted);margin:6px 0;word-break:break-all"></div>
+          <div id="brk-spots" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;margin-top:8px"></div>
+        </div>
+        <div id="admin-break" style="display:none;margin:6px 0;padding:14px;border:1px dashed var(--gold);border-radius:10px">
+          <div style="font-family:var(--head);text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;color:var(--gold-2);margin-bottom:10px">⭐ Break controls</div>
+          <div id="brk-start" style="display:grid;gap:8px">
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <input id="bk-title" placeholder="Break title" style="flex:1;min-width:150px;background:var(--ink);color:#fff;border:1px solid var(--line);border-radius:4px;padding:8px">
+              <select id="bk-type" onchange="brkTypeChange()" style="background:var(--ink);color:#fff;border:1px solid var(--line);border-radius:4px;padding:8px">
+                <option value="spots">Spots (numbered)</option>
+                <option value="teams">Teams (buyer picks)</option>
+                <option value="razz">Razz (random)</option>
+              </select>
+              <input id="bk-price" type="number" placeholder="$/spot" style="width:82px;background:var(--ink);color:#fff;border:1px solid var(--line);border-radius:4px;padding:8px">
+              <input id="bk-count" type="number" value="8" placeholder="# spots" style="width:82px;background:var(--ink);color:#fff;border:1px solid var(--line);border-radius:4px;padding:8px">
+            </div>
+            <textarea id="bk-labels" placeholder="One team per line (Teams / Razz)" style="display:none;width:100%;min-height:58px;background:var(--ink);color:#fff;border:1px solid var(--line);border-radius:4px;padding:8px"></textarea>
+            <button class="btn sm" onclick="adminStartBreak()" style="justify-self:start">Start Break</button>
+          </div>
+          <button class="btn ghost sm" id="brk-end" style="display:none;margin-top:8px" onclick="adminEndBreak()">End Break</button>
+        </div>
+
+        <p class="eyebrow" style="margin:24px 0 12px" id="schedule">Up Next Tonight</p>
+        <div class="upnext">
+          <div class="u card"><div class="card-media" style="aspect-ratio:5/7"><div class="slab"><span class="emoji">🏀</span></div></div><div class="card-body"><span class="card-title" style="font-size:.82rem">Prizm Basketball Hobby</span><span class="card-cat">9:00 PM</span></div></div>
+          <div class="u card"><div class="card-media" style="aspect-ratio:5/7"><div class="slab"><span class="emoji">⚡</span></div></div><div class="card-body"><span class="card-title" style="font-size:.82rem">151 Mega Break</span><span class="card-cat">9:40 PM</span></div></div>
+          <div class="u card"><div class="card-media" style="aspect-ratio:5/7"><div class="slab"><span class="emoji">🏈</span></div></div><div class="card-body"><span class="card-title" style="font-size:.82rem">Optic Football PYT</span><span class="card-cat">10:15 PM</span></div></div>
+          <div class="u card"><div class="card-media" style="aspect-ratio:5/7"><div class="slab"><span class="emoji">🏴‍☠️</span></div></div><div class="card-body"><span class="card-title" style="font-size:.82rem">One Piece OP-07</span><span class="card-cat">11:00 PM</span></div></div>
+        </div>
+      </div>
+
+      <!-- CHAT COLUMN -->
+      <div class="chat">
+        <div class="chat-head">💬 Live Chat
+          <select id="mod-slow" onchange="modSlow(this.value)" title="Slow mode" style="display:none;float:right;background:var(--ink);color:#fff;border:1px solid var(--line);border-radius:4px;font-size:.7rem;padding:2px 4px">
+            <option value="0">Slow: off</option><option value="3">3s</option><option value="5">5s</option><option value="10">10s</option><option value="30">30s</option>
+          </select>
+        </div>
+        <div class="chat-log" id="chat-log"></div>
+        <form class="chat-in" onsubmit="return sendChat(event)">
+          <input id="chat-input" placeholder="Say something…" autocomplete="off" maxlength="140">
+          <button class="btn sm" type="submit">Send</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href="/">OUTLAW<span class="mark">·</span>CARDS</a>
+        <p>Buy, bid, and rip. Authenticated trading cards, live auctions, and live breaks — collect without permission.</p>
+      </div>
+      <div class="foot-col"><h4>Shop</h4><a href="/shop/">All Cards</a><a href="/shop/#sealed">Sealed Wax</a></div>
+      <div class="foot-col"><h4>Play</h4><a href="/auctions/">Live Auctions</a><a href="/live/">Live Breaks</a></div>
+      <div class="foot-col"><h4>Company</h4><a href="/about/">Our Story</a><a href="/about/#contact">Contact</a></div>
+    </div>
+    <div class="foot-bot"><span>© 2026 Outlaw Trading Cards.</span><span>Collect without permission.</span></div>
+  </div>
+</footer>
+
+<div class="drawer-mask" id="drawer-mask" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head"><h3>Your Cart</h3><button onclick="closeDrawer()">×</button></div>
+  <div class="drawer-body" id="drawer-body"></div>
+  <div class="drawer-foot">
+    <div style="display:flex;justify-content:space-between;margin-bottom:14px;font-family:var(--head);text-transform:uppercase;letter-spacing:.1em"><span>Subtotal</span><span id="cart-total" class="price">$0</span></div>
+    <a class="btn" style="width:100%;text-align:center" href="/checkout/">Checkout</a>
+  </div>
+</aside>
+
+<script src="/assets/js/site.js"></script>
+<script>
+window.__realtimeChat = true;  // use the real WebSocket room, not the demo sim
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let LIVE_WS=null, LIVE_SIGNEDIN=false;
+
+async function initLive(){
+  const ph=document.getElementById('player-ph');
+  const flag=document.querySelector('.player .live-flag');
+  const viewers=document.getElementById('viewers');
+  let d={};
+  try{ d=await fetch('/api/live').then(r=>r.json()); }catch(e){ return; }
+  if(d.status==='live' && d.show && d.show.playback){
+    if(!ph.querySelector('iframe')){   // embed once; don't reload the player every 30s
+      ph.innerHTML='<iframe src="'+d.show.playback.iframe+'?autoplay=true&muted=true&preload=true" '+
+        'style="position:absolute;inset:0;width:100%;height:100%;border:0" '+
+        'allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>';
+    }
+    const h=document.querySelector('.stream-meta h2'); if(h && d.show.title) h.textContent=d.show.title;
+    if(flag) flag.style.display='';
+    connectRoom(d.show.id);
+  } else {
+    if(flag) flag.style.display='none';
+    if(viewers) viewers.style.display='none';
+    const next=d.next&&d.next.title
+      ? 'Next up: '+esc(d.next.title)+(d.next.scheduled_at?' · '+new Date(d.next.scheduled_at).toLocaleString():'')
+      : 'No live show right now — check back soon.';
+    ph.innerHTML='<div style="text-align:center;padding:0 30px">'+
+      '<p style="font-family:var(--head);text-transform:uppercase;letter-spacing:.16em;font-size:.9rem;color:#fff">Off Air</p>'+
+      '<p style="color:#9b9ba2;font-size:.8rem;margin-top:8px">'+next+'</p></div>';
+  }
+}
+
+function connectRoom(showId){
+  if(LIVE_WS && LIVE_WS.readyState<=1) return;   // already connecting/open
+  const proto=location.protocol==='https:'?'wss':'ws';
+  const ws=new WebSocket(proto+'://'+location.host+'/api/live/socket?show='+encodeURIComponent(showId));
+  LIVE_WS=ws;
+  ws.onmessage=(e)=>{ let m; try{m=JSON.parse(e.data)}catch{return;}
+    if(m.type==='presence'){ const v=document.getElementById('viewers'); if(v){v.style.display='';v.textContent='👁 '+m.count+' watching';} }
+    else if(m.type==='welcome'){ LIVE_SIGNEDIN=!!(m.you&&m.you.signedIn); setChatEnabled(LIVE_SIGNEDIN); if(m.you&&m.you.admin){ ADMIN=true; initAdminAuction(); initAdminBreak(); const ms=document.getElementById('mod-slow'); if(ms)ms.style.display=''; } }
+    else if(m.type==='history'){ const log=document.getElementById('chat-log'); if(log){log.innerHTML=''; (m.messages||[]).forEach(addChatMsg);} }
+    else if(m.type==='chat'){ addChatMsg(m); }
+    else if(m.type==='chat_delete'){ const el=document.querySelector('#chat-log .msg[data-id="'+m.id+'"]'); if(el) el.remove(); }
+    else if(m.type==='auction'){ showAuction(m.auction, m.lastBid); }
+    else if(m.type==='break'){ showBreak(m.break, m.filled); }
+    else if(m.type==='auction_closed'){ if(m.result==='no_sale') toast('No bids on '+m.title); hideAuction(); }
+    else if(m.type==='auction_settled'){ toast(m.result==='paid'?('SOLD to '+m.winnerName+'! 🎉'):('Payment pending: '+m.title)); hideAuction(); }
+    else if(m.type==='error'){ toast(m.error); }
+  };
+  ws.onclose=()=>{ LIVE_WS=null; };
+}
+function addChatMsg(m){ const log=document.getElementById('chat-log'); if(!log)return;
+  const d=document.createElement('div'); d.className='msg'; if(m.id) d.dataset.id=m.id;
+  const nm = m.role==='admin' ? '<b style="color:var(--gold)">'+esc(m.name)+' ⭐</b>'
+    : m.role==='system' ? '<b style="color:var(--gold-2)">'+esc(m.name)+'</b>' : '<b>'+esc(m.name)+'</b>';
+  let mod='';
+  if(ADMIN && m.id && m.role!=='system' && m.role!=='admin'){
+    mod=' <span style="float:right;white-space:nowrap;font-size:.85em">'
+      +'<a onclick="modDel(\''+m.id+'\')" title="delete" style="cursor:pointer;color:#f3a3a9">✕</a> '
+      +'<a onclick="modTo(\''+m.id+'\')" title="timeout" style="cursor:pointer;color:var(--gold-2)">⏱</a> '
+      +'<a onclick="modBan(\''+m.id+'\')" title="ban" style="cursor:pointer;color:#f3a3a9">⛔</a></span>';
+  }
+  d.innerHTML=nm+esc(m.text)+mod; log.appendChild(d); log.scrollTop=log.scrollHeight;
+  while(log.children.length>80) log.removeChild(log.firstChild); }
+function modDel(id){ if(LIVE_WS&&LIVE_WS.readyState===1) LIVE_WS.send(JSON.stringify({type:'mod_delete',id})); }
+function modTo(id){ const s=prompt('Time this user out for how many seconds?','60'); if(!s)return; if(LIVE_WS&&LIVE_WS.readyState===1) LIVE_WS.send(JSON.stringify({type:'mod_timeout',id,seconds:parseInt(s)||60})); }
+function modBan(id){ if(!confirm('Ban this user from chat for the show?'))return; if(LIVE_WS&&LIVE_WS.readyState===1) LIVE_WS.send(JSON.stringify({type:'mod_ban',id})); }
+function modSlow(sec){ if(LIVE_WS&&LIVE_WS.readyState===1) LIVE_WS.send(JSON.stringify({type:'mod_slow',seconds:parseInt(sec)||0})); }
+function setChatEnabled(on){ const i=document.getElementById('chat-input'); if(i){ i.disabled=!on; i.placeholder=on?'Say something…':'Sign in at /account/ to chat'; } }
+function sendChat(e){ e.preventDefault(); const i=document.getElementById('chat-input'); const t=(i.value||'').trim();
+  if(!t) return false;
+  if(!LIVE_WS || LIVE_WS.readyState!==1){ toast('Connecting to the live room…'); return false; }
+  LIVE_WS.send(JSON.stringify({type:'chat',text:t})); i.value=''; return false; }
+
+/* ---- live auctions (2b) ---- */
+let AUC=null, aucTimer=null, ADMIN=false;
+function bidFloor(a){ return a.currentCents ? a.currentCents+a.minIncrement : Math.max(a.startCents, a.minIncrement); }
+function showAuction(a, lastBid){
+  AUC=a; const p=document.getElementById('auction-panel'); if(!p) return; p.style.display='';
+  document.getElementById('auc-title').textContent=a.title;
+  const img=document.getElementById('auc-img'); if(a.image){img.src=a.image;img.style.display='';}else{img.style.display='none';}
+  document.getElementById('auc-bid').textContent='$'+((a.currentCents||0)/100).toLocaleString();
+  document.getElementById('auc-high').textContent=a.highBidderName?('high bid: '+a.highBidderName):'no bids yet';
+  const amt=document.getElementById('auc-amt'); const floor=bidFloor(a); amt.placeholder='$'+Math.ceil(floor/100)+'+';
+  if(lastBid) toast(lastBid.name+' bid $'+(lastBid.amount/100).toLocaleString());
+  startAucTimer();
+  if(ADMIN){ document.getElementById('admin-start').style.display='none'; document.getElementById('admin-end').style.display=''; }
+}
+function hideAuction(){ AUC=null; clearInterval(aucTimer);
+  const p=document.getElementById('auction-panel'); if(p)p.style.display='none';
+  if(ADMIN){ const s=document.getElementById('admin-start'); if(s)s.style.display='flex'; const e=document.getElementById('admin-end'); if(e)e.style.display='none'; } }
+function startAucTimer(){ clearInterval(aucTimer); const t=document.getElementById('auc-timer'); if(!t) return;
+  const tick=()=>{ if(!AUC){clearInterval(aucTimer);return;} const s=Math.max(0,Math.round((AUC.endsAt-Date.now())/1000));
+    t.textContent='⏱ '+s+'s'; t.className='pill '+(s<=10?'review':'avail'); };
+  tick(); aucTimer=setInterval(tick,250); }
+function placeLiveBid(){ if(!AUC) return; const el=document.getElementById('auc-amt');
+  let dollars=parseFloat(el.value||'0'); if(!dollars) dollars=bidFloor(AUC)/100;
+  if(!LIVE_WS||LIVE_WS.readyState!==1){ toast('Connecting to the live room…'); return; }
+  LIVE_WS.send(JSON.stringify({type:'bid', amount_cents:Math.round(dollars*100)})); el.value=''; }
+async function initAdminAuction(){ ADMIN=true; const box=document.getElementById('admin-auction'); if(box)box.style.display='';
+  try{ const {cards}=await (await fetch('/api/cards?status=all')).json(); const sel=document.getElementById('ac-card');
+    if(sel) sel.innerHTML=(cards||[]).filter(c=>c.status==='available'&&!c.needs_review)
+      .map(c=>`<option value="${esc(c.id)}" data-title="${esc(c.title)}" data-img="${esc(c.image_url||'')}">${esc(c.title)} — $${c.price}</option>`).join('');
+  }catch(e){}
+}
+function adminStartAuction(){ const sel=document.getElementById('ac-card'); const opt=sel&&sel.selectedOptions[0];
+  if(!opt){ toast('Pick a card'); return; }
+  const start=parseFloat(document.getElementById('ac-start').value||'0'); const dur=parseInt(document.getElementById('ac-dur').value||'45');
+  if(!LIVE_WS||LIVE_WS.readyState!==1){ toast('Not connected'); return; }
+  LIVE_WS.send(JSON.stringify({type:'auction_start', card_id:opt.value, title:opt.dataset.title, image:opt.dataset.img||null,
+    start_cents:Math.round(start*100), min_increment_cents:100, duration_sec:dur})); }
+function adminEndAuction(){ if(LIVE_WS&&LIVE_WS.readyState===1) LIVE_WS.send(JSON.stringify({type:'auction_end'})); }
+
+/* ---- live breaks (2c) ---- */
+let BRK=null;
+function showBreak(b){
+  BRK=b; const p=document.getElementById('break-panel'); if(!p) return;
+  if(!b){ p.style.display='none'; if(ADMIN){document.getElementById('brk-start').style.display='';document.getElementById('brk-end').style.display='none';} return; }
+  p.style.display='';
+  document.getElementById('brk-title').textContent=b.title;
+  document.getElementById('brk-price').innerHTML='$'+(b.priceCents/100).toLocaleString()+'<small>per spot</small>';
+  const fair=document.getElementById('brk-fair');
+  if(b.type==='razz'){
+    fair.style.display='';
+    fair.innerHTML = b.serverSeed
+      ? '🎲 Provably fair — revealed seed: <code>'+esc(b.serverSeed)+'</code>  (sha256 must equal commit '+esc((b.seedHash||'').slice(0,20))+'…)'
+      : '🎲 Provably fair — teams randomized on fill. Commit hash: <code>'+esc((b.seedHash||'').slice(0,28))+'…</code>';
+  } else fair.style.display='none';
+  const grid=document.getElementById('brk-spots');
+  grid.innerHTML=b.spots.map((s,i)=>{
+    const claimed=s.status==='claimed', pending=s.status==='pending';
+    const team = s.team ? '<div style="color:var(--gold-2);font-size:.72rem">→ '+esc(s.team)+'</div>' : '';
+    const owner = (claimed||pending) ? '<div style="color:var(--muted);font-size:.72rem">'+esc(s.ownerName||'…')+(pending?' (paying…)':'')+'</div>' : '';
+    const btn = s.status==='open' ? '<button class="btn gold sm" style="width:100%;margin-top:6px" onclick="claimSpot('+i+')">Claim</button>' : '';
+    const bg = claimed?'rgba(35,160,90,.12)':pending?'rgba(230,180,34,.12)':'var(--ink)';
+    return '<div style="border:1px solid var(--line);border-radius:8px;padding:8px;background:'+bg+'"><b style="font-size:.85rem">'+esc(s.label)+'</b>'+team+owner+btn+'</div>';
+  }).join('');
+  if(ADMIN){ document.getElementById('brk-start').style.display=(b.status==='open')?'none':''; document.getElementById('brk-end').style.display=(b.status!=='closed')?'':'none'; }
+}
+function claimSpot(i){ if(!BRK) return; const s=BRK.spots[i]; if(!s||s.status!=='open') return;
+  if(!LIVE_WS||LIVE_WS.readyState!==1){ toast('Connecting to the live room…'); return; }
+  if(!confirm('Claim '+s.label+' for $'+(BRK.priceCents/100).toLocaleString()+'? Your saved card will be charged now.')) return;
+  LIVE_WS.send(JSON.stringify({type:'claim', spot:i})); }
+function initAdminBreak(){ ADMIN=true; const box=document.getElementById('admin-break'); if(box)box.style.display=''; }
+function brkTypeChange(){ const t=document.getElementById('bk-type').value;
+  document.getElementById('bk-labels').style.display=(t==='spots')?'none':'';
+  document.getElementById('bk-count').style.display=(t==='spots')?'':'none'; }
+function adminStartBreak(){
+  const type=document.getElementById('bk-type').value;
+  const title=(document.getElementById('bk-title').value||'').trim()||'Live Break';
+  const price=parseFloat(document.getElementById('bk-price').value||'0');
+  if(price<=0){ toast('Set a price per spot'); return; }
+  const msg={type:'break_start', break_type:type, title, price_cents:Math.round(price*100)};
+  if(type==='spots'){ msg.spot_count=parseInt(document.getElementById('bk-count').value||'8'); }
+  else { msg.labels=(document.getElementById('bk-labels').value||'').split('\n').map(x=>x.trim()).filter(Boolean); if(msg.labels.length<2){ toast('Add at least 2 teams (one per line)'); return; } }
+  if(!LIVE_WS||LIVE_WS.readyState!==1){ toast('Not connected'); return; }
+  LIVE_WS.send(JSON.stringify(msg)); }
+function adminEndBreak(){ if(LIVE_WS&&LIVE_WS.readyState===1) LIVE_WS.send(JSON.stringify({type:'break_end'})); }
+
+/* ---- web-push "show starting" alerts (2d) ---- */
+function urlB64ToUint8(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); s+='='.repeat((4-s.length%4)%4); const r=atob(s); return Uint8Array.from(r,c=>c.charCodeAt(0)); }
+async function enableNotifications(){
+  if(!('serviceWorker' in navigator) || !('PushManager' in window)){ toast('Notifications aren’t supported on this browser'); return; }
+  try{
+    const cfg=await (await fetch('/api/push/config')).json();
+    if(!cfg.enabled){ toast('Notifications aren’t switched on yet'); return; }
+    const perm=await Notification.requestPermission();
+    if(perm!=='granted'){ toast('Notifications blocked — enable them in browser settings'); return; }
+    const reg=await navigator.serviceWorker.register('/sw.js'); await navigator.serviceWorker.ready;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub) sub=await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:urlB64ToUint8(cfg.vapid_public)});
+    const res=await fetch('/api/push/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(sub)});
+    if(!res.ok) throw new Error('the server did not save your subscription');
+    const b=document.getElementById('notify-btn'); if(b){ b.textContent='🔔 You’re subscribed'; b.disabled=true; }
+    toast('Done — you’ll get a ping when Noah goes live');
+  }catch(e){ toast('Could not enable notifications: '+(e.message||e)); }
+}
+
+function startStream(){ initLive(); }
+document.addEventListener('DOMContentLoaded', initLive);
+setInterval(initLive, 30000);
+</script>
+</body>
+</html>

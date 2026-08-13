@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Account — OUTLAW TRADING CARDS</title>
+<link rel="canonical" href="https://outlawtradingcards.com/account/">
+<meta name="description" content="Sign in to your Outlaw Trading Cards account — manage your details and shipping.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg">
+<link rel="stylesheet" href="/assets/css/site.css">
+<script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+
+<div class="promo">Buy direct · Live breaks nightly · Collect without permission</div>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="/">OUTLAW<span class="mark">·</span>CARDS</a>
+    <nav class="nav-links" id="nav-links">
+      <a href="/shop/">Shop</a><a href="/auctions/">Auctions</a><a href="/live/">Live</a><a href="/about/">Our Story</a>
+    </nav>
+    <div class="nav-right">
+      <a class="live-pill" href="/live/"><span class="live-dot"></span>Live</a>
+      <a class="icon-btn" href="/account/">Account</a>
+      <button class="burger" onclick="toggleNav()" aria-label="Menu">☰</button>
+    </div>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="wrap">
+    <p class="eyebrow">Your Account</p>
+    <h1 id="hero-title">Sign In</h1>
+    <p class="lead" id="hero-lead">Sign in or create an account to save your details and check out faster.</p>
+  </div>
+</section>
+
+<section class="section-dark">
+  <div class="wrap" id="root"><p style="text-align:center;color:var(--muted)">Loading…</p></div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-bot"><span>© 2026 Outlaw Trading Cards.</span><span>Collect without permission.</span></div>
+  </div>
+</footer>
+
+<script src="/assets/js/site.js"></script>
+<script>
+const $ = (s,el=document)=>el.querySelector(s);
+const api = async (url,opts)=>{const r=await fetch(url,{headers:{'Content-Type':'application/json'},...opts});
+  let d={};try{d=await r.json()}catch{} if(!r.ok) throw new Error(d.error||('Error '+r.status)); return d;};
+const esc = s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+async function boot(){
+  let me=null;
+  try{ me=(await api('/api/auth/me')).user; }catch{}
+  if(me) renderDashboard(me); else renderAuth('signin');
+}
+
+function setHero(t,l){$('#hero-title').textContent=t;$('#hero-lead').textContent=l;}
+
+function renderAuth(tab){
+  setHero('Sign In','Sign in or create an account to save your details and check out faster.');
+  $('#root').innerHTML=`
+    <div class="tabs">
+      <button id="t-signin" class="${tab==='signin'?'on':''}" onclick="renderAuth('signin')">Sign In</button>
+      <button id="t-signup" class="${tab==='signup'?'on':''}" onclick="renderAuth('signup')">Create Account</button>
+    </div>
+    <div class="panel">
+      ${tab==='signin'?`
+      <form class="oform" onsubmit="return doSignin(event)">
+        <div><label>Email</label><input name="email" type="email" required></div>
+        <div><label>Password</label><input name="password" type="password" required></div>
+        <button class="btn" type="submit">Sign In</button>
+        <div class="msg" id="msg"></div>
+      </form>`:`
+      <form class="oform" onsubmit="return doSignup(event)">
+        <div><label>Display name</label><input name="display_name" required minlength="2"></div>
+        <div><label>Email</label><input name="email" type="email" required></div>
+        <div><label>Password (8+ characters)</label><input name="password" type="password" required minlength="8"></div>
+        <button class="btn" type="submit">Create Account</button>
+        <div class="msg" id="msg"></div>
+      </form>`}
+    </div>`;
+}
+
+function formData(f){return Object.fromEntries(new FormData(f).entries());}
+function showMsg(f,txt,ok){const m=$('#msg',f);m.className='msg '+(ok?'ok':'err');m.textContent=txt;}
+
+async function doSignin(e){e.preventDefault();const f=e.target;
+  try{await api('/api/auth/signin',{method:'POST',body:JSON.stringify(formData(f))});boot();}
+  catch(err){showMsg(f,err.message,false);}return false;}
+async function doSignup(e){e.preventDefault();const f=e.target;
+  try{await api('/api/auth/signup',{method:'POST',body:JSON.stringify(formData(f))});boot();}
+  catch(err){showMsg(f,err.message,false);}return false;}
+async function doSignout(){try{await api('/api/auth/signout',{method:'POST'});}catch{} boot();}
+
+async function renderDashboard(me){
+  setHero('Welcome, '+me.display_name, 'Manage your details and shipping addresses.');
+  const adminLink = me.role==='admin'?`<a class="btn gold sm" href="/console/">Seller Console</a>`:'';
+  $('#root').innerHTML=`
+    <div class="panel">
+      <h2>Account</h2>
+      <p class="sub">${esc(me.email)} · ${esc(me.role)}</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">${adminLink}
+        <button class="btn ghost sm" onclick="doSignout()">Sign Out</button></div>
+    </div>
+    <div class="panel">
+      <h2>Payment Method</h2>
+      <p class="sub">Save a card on file so checkout and live bidding are one tap.</p>
+      <div class="cl-list" id="pm-list"><p style="color:var(--muted)">Loading…</p></div>
+      <div id="pm-add"></div>
+    </div>
+    <div class="panel">
+      <h2>Shipping Addresses</h2>
+      <p class="sub">Where your cards ship. Set one as default for faster checkout.</p>
+      <div class="cl-list" id="ship-list"><p style="color:var(--muted)">Loading…</p></div>
+      <details style="margin-top:18px"><summary class="linkbtn" style="cursor:pointer">+ Add a shipping address</summary>
+      <form class="oform" style="margin-top:14px" onsubmit="return addShip(event)">
+        <div><label>Label (e.g. Home)</label><input name="name" required></div>
+        <div><label>Address line 1</label><input name="address1" required></div>
+        <div><label>Address line 2 (optional)</label><input name="address2"></div>
+        <div class="row"><div><label>City</label><input name="city" required></div>
+          <div><label>State</label><input name="state" required></div></div>
+        <div class="row"><div><label>ZIP</label><input name="zip" required></div>
+          <div><label>Country</label><input name="country" value="US"></div></div>
+        <label style="display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:.9rem;color:#fff">
+          <input type="checkbox" name="is_default" style="width:auto"> Make this my default</label>
+        <button class="btn" type="submit">Save Address</button>
+        <div class="msg" id="msg"></div>
+      </form></details>
+    </div>
+    <div class="panel">
+      <h2>Order History</h2>
+      <div class="cl-list" id="orders"><p style="color:var(--muted)">Loading…</p></div>
+    </div>`;
+  loadShipping();
+  loadPayments();
+  loadOrders();
+}
+
+async function loadOrders(){
+  const el=$('#orders');
+  try{
+    const {orders}=await api('/api/orders');
+    if(!orders.length){el.innerHTML='<p style="color:var(--muted)">No orders yet.</p>';return;}
+    el.innerHTML=orders.map(o=>`
+      <div class="cl-card" style="grid-template-columns:1fr auto">
+        <div class="meta"><b>${o.items.map(i=>esc(i.title)).join(', ')||'Order'}</b>
+          <span>${new Date(o.created_at+'Z').toLocaleDateString()} · ${esc(o.status)}</span></div>
+        <div class="right"><b class="price">$${(o.amount_cents/100).toLocaleString()}</b></div>
+      </div>`).join('');
+  }catch(err){el.innerHTML='<p class="msg err">'+esc(err.message)+'</p>';}
+}
+
+/* ---- payment methods (Stripe) ---- */
+let _stripe=null, _cfg=null;
+async function loadPayments(){
+  const list=$('#pm-list'), addEl=$('#pm-add');
+  try{ _cfg=await api('/api/stripe/config'); }catch{ _cfg={enabled:false}; }
+  if(!_cfg.enabled){
+    list.innerHTML='<p style="color:var(--muted)">Card payments are being switched on. Check back shortly.</p>';
+    addEl.innerHTML=''; return;
+  }
+  if(!_stripe) _stripe=Stripe(_cfg.publishable_key);
+  try{
+    const {payment_methods}=await api('/api/payment-methods');
+    if(!payment_methods.length){ list.innerHTML='<p style="color:var(--muted)">No card saved yet.</p>'; }
+    else list.innerHTML=payment_methods.map(pm=>`
+      <div class="cl-card" style="grid-template-columns:1fr auto">
+        <div class="meta"><b>${esc(pm.brand.toUpperCase())} •••• ${esc(pm.last4)} ${pm.is_default?'<span class="pill avail">Default</span>':''}</b>
+          <span>Expires ${String(pm.exp_month).padStart(2,'0')}/${pm.exp_year}</span></div>
+        <div class="right">
+          ${pm.is_default?'':`<button class="linkbtn" onclick="setDefaultPm('${pm.id}')">Set default</button>`}
+          <button class="linkbtn" style="color:#f3a3a9" onclick="delPm('${pm.id}')">Remove</button></div>
+      </div>`).join('');
+    addEl.innerHTML=`<button class="btn ghost sm" style="margin-top:14px" onclick="startAddCard()">+ Add a card</button>`;
+  }catch(err){ list.innerHTML='<p class="msg err">'+esc(err.message)+'</p>'; }
+}
+async function startAddCard(){
+  const addEl=$('#pm-add');
+  addEl.innerHTML=`<div class="panel" style="margin-top:14px;background:var(--ink)">
+    <div id="pay-el"></div>
+    <div style="display:flex;gap:10px;margin-top:14px">
+      <button class="btn sm" id="pay-save">Save Card</button>
+      <button class="btn ghost sm" onclick="loadPayments()">Cancel</button></div>
+    <div class="msg" id="pay-msg"></div></div>`;
+  const {client_secret}=await api('/api/stripe/setup-intent',{method:'POST'});
+  const elements=_stripe.elements({clientSecret:client_secret, appearance:{theme:'night',variables:{colorPrimary:'#c81e2c'}}});
+  const pe=elements.create('payment'); pe.mount('#pay-el');
+  $('#pay-save').onclick=async()=>{
+    const m=$('#pay-msg'); const btn=$('#pay-save'); btn.disabled=true; btn.textContent='Saving…';
+    const {error}=await _stripe.confirmSetup({elements, redirect:'if_required'});
+    if(error){ m.className='msg err'; m.textContent=error.message; btn.disabled=false; btn.textContent='Save Card'; }
+    else { loadPayments(); }
+  };
+}
+async function setDefaultPm(id){try{await api('/api/payment-methods/'+id,{method:'PATCH',body:JSON.stringify({default:true})});loadPayments();}catch(e){alert(e.message);}}
+async function delPm(id){if(!confirm('Remove this card?'))return;try{await api('/api/payment-methods/'+id,{method:'DELETE'});loadPayments();}catch(e){alert(e.message);}}
+
+async function loadShipping(){
+  const el=$('#ship-list');
+  try{
+    const {shipping_profiles}=await api('/api/shipping');
+    if(!shipping_profiles.length){el.innerHTML='<p style="color:var(--muted)">No addresses yet.</p>';return;}
+    el.innerHTML=shipping_profiles.map(p=>`
+      <div class="cl-card" style="grid-template-columns:1fr auto">
+        <div class="meta"><b>${esc(p.name)} ${p.is_default?'<span class="pill avail">Default</span>':''}</b>
+          <span>${esc(p.address1)}${p.address2?', '+esc(p.address2):''}, ${esc(p.city)}, ${esc(p.state)} ${esc(p.zip)}, ${esc(p.country)}</span></div>
+        <div class="right">
+          ${p.is_default?'':`<button class="linkbtn" onclick="setDefault('${p.id}')">Set default</button>`}
+          <button class="linkbtn" style="color:#f3a3a9" onclick="delShip('${p.id}')">Remove</button></div>
+      </div>`).join('');
+  }catch(err){el.innerHTML='<p class="msg err">'+esc(err.message)+'</p>';}
+}
+async function addShip(e){e.preventDefault();const f=e.target;const d=formData(f);d.is_default=f.is_default.checked;
+  try{await api('/api/shipping',{method:'POST',body:JSON.stringify(d)});f.reset();loadShipping();}
+  catch(err){showMsg(f,err.message,false);}return false;}
+async function setDefault(id){try{await api('/api/shipping/'+id,{method:'PATCH',body:JSON.stringify({is_default:true})});loadShipping();}catch{}}
+async function delShip(id){if(!confirm('Remove this address?'))return;try{await api('/api/shipping/'+id,{method:'DELETE'});loadShipping();}catch{}}
+
+boot();
+</script>
+</body>
+</html>

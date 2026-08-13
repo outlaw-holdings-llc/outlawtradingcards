@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Live Auctions — OUTLAW TRADING CARDS</title>
+<link rel="canonical" href="https://outlawtradingcards.com/auctions/">
+<meta property="og:title" content="Live Auctions — OUTLAW TRADING CARDS">
+<meta property="og:description" content="Bid on graded grails, 1-of-1 hits and sealed wax. Live countdowns, real reserves, no hype tax.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://outlawtradingcards.com/auctions/">
+<meta property="og:site_name" content="Outlaw Trading Cards">
+<meta property="og:image" content="https://outlawtradingcards.com/assets/img/og-card.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Live Auctions — OUTLAW TRADING CARDS">
+<meta name="twitter:description" content="Bid on graded grails, 1-of-1 hits and sealed wax. Live countdowns, real reserves, no hype tax.">
+<meta name="twitter:image" content="https://outlawtradingcards.com/assets/img/og-card.jpg">
+<meta name="description" content="Bid on graded grails, 1-of-1 hits and sealed wax. Live countdowns, real reserves, no hype tax.">
+<link rel="icon" href="/favicon.svg">
+<link rel="stylesheet" href="/assets/css/site.css">
+</head>
+<body>
+
+<div class="promo">Free shipping on U.S. orders <b>$99+</b> &nbsp;·&nbsp; Live breaks nightly &nbsp;·&nbsp; New drops every Friday</div>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="/">OUTLAW<span class="mark">·</span>CARDS</a>
+    <nav class="nav-links" id="nav-links">
+      <a href="/shop/">Shop</a><a href="/auctions/" class="on">Auctions</a><a href="/live/">Live</a><a href="/about/">Our Story</a>
+    </nav>
+    <div class="nav-right">
+      <a class="live-pill" href="/live/"><span class="live-dot"></span>Live</a>
+      <a class="icon-btn" href="/account/">Account</a>
+      <button class="icon-btn" onclick="openDrawer()">Cart <span class="cart-count">0</span></button>
+      <button class="burger" onclick="toggleNav()" aria-label="Menu">☰</button>
+    </div>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="wrap">
+    <p class="eyebrow">Going, Going…</p>
+    <h1>Live Auctions</h1>
+    <p class="lead">Real reserves, live countdowns, and no proxy games. Place your max, watch the clock, and take home the hit. Bids below are a live demo — the real bidding engine wires in next.</p>
+  </div>
+</section>
+
+<section class="section-dark">
+  <div class="wrap">
+    <div class="grid cols-3" id="auction-grid"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href="/">OUTLAW<span class="mark">·</span>CARDS</a>
+        <p>Buy, bid, and rip. Authenticated trading cards, live auctions, and live breaks — collect without permission.</p>
+      </div>
+      <div class="foot-col"><h4>Shop</h4><a href="/shop/">All Cards</a><a href="/shop/#sealed">Sealed Wax</a></div>
+      <div class="foot-col"><h4>Play</h4><a href="/auctions/">Live Auctions</a><a href="/live/">Live Breaks</a></div>
+      <div class="foot-col"><h4>Company</h4><a href="/about/">Our Story</a><a href="/about/#contact">Contact</a></div>
+    </div>
+    <div class="foot-bot"><span>© 2026 Outlaw Trading Cards.</span><span>Collect without permission.</span></div>
+  </div>
+</footer>
+
+<div class="drawer-mask" id="drawer-mask" onclick="closeDrawer()"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head"><h3>Your Cart</h3><button onclick="closeDrawer()">×</button></div>
+  <div class="drawer-body" id="drawer-body"></div>
+  <div class="drawer-foot">
+    <div style="display:flex;justify-content:space-between;margin-bottom:14px;font-family:var(--head);text-transform:uppercase;letter-spacing:.1em"><span>Subtotal</span><span id="cart-total" class="price">$0</span></div>
+    <a class="btn" style="width:100%;text-align:center" href="/checkout/">Checkout</a>
+  </div>
+</aside>
+
+<script src="/assets/js/site.js"></script>
+</body>
+</html>

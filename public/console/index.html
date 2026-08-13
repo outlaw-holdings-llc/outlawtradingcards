@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Seller Console — OUTLAW TRADING CARDS</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg">
+<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="stylesheet" href="/assets/vendor/flatpickr.min.css">
+<link rel="stylesheet" href="/assets/vendor/flatpickr.dark.css">
+</head>
+<body>
+
+<div class="promo">Seller Console · Admin only</div>
+
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="/">OUTLAW<span class="mark">·</span>CARDS</a>
+    <nav class="nav-links" id="nav-links">
+      <a href="/shop/">Shop</a><a href="/auctions/">Auctions</a><a href="/live/">Live</a><a href="/account/">Account</a>
+    </nav>
+    <div class="nav-right">
+      <a class="icon-btn" href="/account/">Account</a>
+      <button class="burger" onclick="toggleNav()" aria-label="Menu">☰</button>
+    </div>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="wrap">
+    <p class="eyebrow">Seller Console</p>
+    <h1>Add & Manage Cards</h1>
+    <p class="lead">Upload each slab with photos and details. New uploads land in the review queue for Claude to help clean up before you publish.</p>
+  </div>
+</section>
+
+<section class="section-dark">
+  <div class="wrap" id="root"><p style="text-align:center;color:var(--muted)">Loading…</p></div>
+</section>
+
+<footer><div class="wrap"><div class="foot-bot"><span>© 2026 Outlaw Trading Cards.</span><span>Collect without permission.</span></div></div></footer>
+
+<script src="/assets/vendor/flatpickr.min.js"></script>
+<script src="/assets/vendor/heic2any.min.js"></script>
+<script src="/assets/js/site.js"></script>
+<script>
+const $=(s,el=document)=>el.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const CATS=['Pokémon','Basketball','Football','Baseball','One Piece','Soccer','Other'];
+const GRADERS=['','PSA','BGS','SGC','CGC','Raw'];
+const japi=async(url,opts)=>{const r=await fetch(url,{headers:{'Content-Type':'application/json'},...opts});
+  let d={};try{d=await r.json()}catch{} if(!r.ok)throw new Error(d.error||('Error '+r.status));return d;};
+const opts=(arr,sel)=>arr.map(v=>`<option value="${esc(v)}"${v===sel?' selected':''}>${esc(v||'—')}</option>`).join('');
+
+async function boot(){
+  let me=null; try{me=(await japi('/api/auth/me')).user;}catch{}
+  if(!me) return gate('Sign in as an admin to use the console.', true);
+  if(me.role!=='admin') return gate('This area is for sellers only. Your account ('+esc(me.email)+') is not an admin.', false);
+  renderConsole(me);
+}
+
+function gate(msg, showForm){
+  $('#root').innerHTML=`<div class="panel"><h2>Restricted</h2><p class="sub">${esc(msg)}</p>
+    ${showForm?`<form class="oform" onsubmit="return doSignin(event)">
+      <div><label>Email</label><input name="email" type="email" required></div>
+      <div><label>Password</label><input name="password" type="password" required></div>
+      <button class="btn" type="submit">Sign In</button><div class="msg" id="msg"></div></form>`:
+      `<a class="btn ghost sm" href="/account/">Go to Account</a>`}</div>`;
+}
+async function doSignin(e){e.preventDefault();const f=e.target;
+  try{await japi('/api/auth/signin',{method:'POST',body:JSON.stringify(Object.fromEntries(new FormData(f)))});boot();}
+  catch(err){const m=$('#msg',f);m.className='msg err';m.textContent=err.message;}return false;}
+
+function renderConsole(me){
+  $('#root').innerHTML=`
+    <div class="panel wide">
+      <h2>Upload a Card</h2>
+      <p class="sub">Front photo required; back optional. JPEG / PNG / WEBP / <b>HEIC</b> — iPhone HEIC photos convert automatically in your browser.</p>
+      <form class="oform" id="up" onsubmit="return doUpload(event)">
+        <div class="row">
+          <div class="file"><label>Front photo *</label><input type="file" name="front" accept="image/*" required onchange="prev(this,'pf')"><img id="pf"></div>
+          <div class="file"><label>Back photo</label><input type="file" name="back" accept="image/*" onchange="prev(this,'pb')"><img id="pb"></div>
+        </div>
+        <div><label>Title *</label><input name="title" placeholder="e.g. 2023 Bowman Chrome Elly De La Cruz RC Auto" required></div>
+        <div class="row">
+          <div><label>Category *</label><select name="category">${opts(CATS,'Pokémon')}</select></div>
+          <div><label>Price (USD) *</label><input name="price" inputmode="decimal" placeholder="e.g. 249.99" required></div>
+        </div>
+        <div class="row">
+          <div><label>Grader</label><select name="grader">${opts(GRADERS,'')}</select></div>
+          <div><label>Grade</label><input name="grade" placeholder="10 / 9.5 / Raw"></div>
+        </div>
+        <div class="row">
+          <div><label>Cert number</label><input name="cert_number" placeholder="PSA/BGS cert #"></div>
+          <div><label>Tag</label><input name="tag" placeholder="Rookie / Auto / Grail"></div>
+        </div>
+        <div class="row">
+          <div><label>Player / character</label><input name="player"></div>
+          <div><label>Year</label><input name="year" placeholder="2023"></div>
+        </div>
+        <div><label>Set</label><input name="card_set" placeholder="e.g. Bowman Chrome"></div>
+        <div><label>Notes (for Claude / yourself)</label><textarea name="notes" placeholder="Anything special — centering, print run, comps you've seen…"></textarea></div>
+        <button class="btn" type="submit">Upload to Review Queue</button>
+        <div class="msg" id="up-msg"></div>
+      </form>
+    </div>
+
+    <div class="panel wide">
+      <h2>Live Show</h2>
+      <p class="sub">Create a show to get a stream key for OBS or your phone, then hit Go Live. Viewers watch on <a class="linkbtn" href="/live/" target="_blank">/live/</a>.</p>
+      <form class="oform" id="showform" onsubmit="return createShow(event)" style="max-width:540px">
+        <div><label>Show title</label><input name="title" placeholder="Friday Night Football Break" required></div>
+        <div class="row">
+          <div><label>Type</label><select name="break_type">
+            <option value="mixed">Mixed (breaks + auctions)</option>
+            <option value="spots">Box/Case break — spots</option>
+            <option value="teams">Break — teams</option>
+            <option value="razz">Razz</option>
+            <option value="singles">Live single auctions</option>
+          </select></div>
+          <div><label>Scheduled (optional)</label><input id="sched" name="scheduled_at" type="text" placeholder="Pick date &amp; time" readonly></div>
+        </div>
+        <button class="btn" type="submit">Create Show + Stream Key</button>
+        <div class="msg" id="show-msg"></div>
+      </form>
+      <div id="shows" class="cl-list" style="margin-top:16px"><p style="color:var(--muted)">Loading…</p></div>
+    </div>
+
+    <div class="panel wide">
+      <h2>Review Queue <span id="q-count" class="pill review"></span></h2>
+      <p class="sub">Freshly uploaded cards. Edit, apply Claude's suggestions, then publish to the shop.</p>
+      <div id="queue" class="cl-list"><p style="color:var(--muted)">Loading…</p></div>
+    </div>
+
+    <div class="panel wide">
+      <h2>Published Inventory</h2>
+      <p class="sub">Live on the shop. Change status or remove.</p>
+      <div id="inv" class="cl-list"><p style="color:var(--muted)">Loading…</p></div>
+    </div>
+
+    <div class="panel wide">
+      <h2>Sales / Orders</h2>
+      <p class="sub">Paid orders to ship. Buyer and address included.</p>
+      <div id="orders" class="cl-list"><p style="color:var(--muted)">Loading…</p></div>
+    </div>`;
+  if(window.flatpickr) flatpickr('#sched',{enableTime:true,minuteIncrement:15,dateFormat:'Y-m-d\\TH:i',altInput:true,altFormat:'M j, Y  h:i K',minDate:'today'});
+  loadAll();
+}
+
+async function loadOrdersC(){
+  const el=$('#orders');
+  try{
+    const {orders}=await japi('/api/admin/orders');
+    if(!orders.length){el.innerHTML='<p style="color:var(--muted)">No orders yet.</p>';return;}
+    el.innerHTML=orders.map(o=>{
+      const ship=o.ship_name?`${esc(o.ship_name)} — ${esc(o.address1)}${o.address2?', '+esc(o.address2):''}, ${esc(o.city)} ${esc(o.state)} ${esc(o.zip)}`:'<i>no address on file</i>';
+      const cls=o.status==='paid'?'avail':(o.status==='pending'?'review':'sold');
+      return `<div class="cl-card" style="grid-template-columns:1fr auto">
+        <div class="meta"><b>${o.items.map(i=>esc(i.title)).join(', ')||'Order'}</b>
+          <span>${esc(o.buyer_name||'')} &lt;${esc(o.buyer_email)}&gt; · ${new Date(o.created_at+'Z').toLocaleString()}<br>Ship to: ${ship}</span></div>
+        <div class="right"><span class="pill ${cls}">${esc(o.status)}</span>
+          <b class="price">$${(o.amount_cents/100).toLocaleString()}</b></div>
+      </div>`;
+    }).join('');
+  }catch(err){el.innerHTML='<p class="msg err">'+esc(err.message)+'</p>';}
+}
+
+window._imgblobs={front:null,back:null};
+function isHeic(file){return /hei[cf]/i.test(file.type)||/\.(heic|heif)$/i.test(file.name||'');}
+async function toJpeg(file){const out=await heic2any({blob:file,toType:'image/jpeg',quality:0.85});return Array.isArray(out)?out[0]:out;}
+
+async function prev(input,id){
+  const img=document.getElementById(id); const side=id==='pf'?'front':'back';
+  const file=input.files&&input.files[0]; window._imgblobs[side]=null;
+  if(!file){img.style.display='none';return;}
+  let blob=file;
+  if(isHeic(file)){
+    img.style.display='none';
+    try{ blob=await toJpeg(file); window._imgblobs[side]=blob; }
+    catch(e){ alert('Could not convert that HEIC photo: '+(e.message||e)); input.value=''; return; }
+  }
+  img.src=URL.createObjectURL(blob); img.style.display='block';
+}
+
+async function doUpload(e){
+  e.preventDefault();const f=e.target;const btn=$('button',f);const m=$('#up-msg');
+  btn.disabled=true;btn.textContent='Uploading…';m.className='msg';
+  try{
+    const fd=new FormData();
+    for(const [k,v] of new FormData(f)){ if(!(v instanceof File)) fd.append(k,v); }
+    for(const side of ['front','back']){
+      const inp=f.querySelector(`input[name="${side}"]`); const file=inp&&inp.files&&inp.files[0];
+      if(!file) continue;
+      let blob=window._imgblobs[side];
+      if(!blob && isHeic(file)){ btn.textContent='Converting…'; blob=await toJpeg(file); }
+      if(blob) fd.append(side, blob, side+'.jpg'); else fd.append(side, file, file.name);
+    }
+    btn.textContent='Uploading…';
+    const r=await fetch('/api/admin/upload',{method:'POST',body:fd});
+    const d=await r.json();if(!r.ok)throw new Error(d.error||('Error '+r.status));
+    f.reset();window._imgblobs={front:null,back:null};
+    document.getElementById('pf').style.display='none';document.getElementById('pb').style.display='none';
+    m.className='msg ok';m.textContent='Uploaded — "'+d.card.title+'" is in the review queue.';
+    loadAll();
+  }catch(err){m.className='msg err';m.textContent=err.message;}
+  finally{btn.disabled=false;btn.textContent='Upload to Review Queue';}
+  return false;
+}
+
+async function loadAll(){ await Promise.all([loadQueue(),loadInventory(),loadOrdersC(),loadShows()]); }
+
+/* ---- live shows ---- */
+function cp(t,btn){navigator.clipboard&&navigator.clipboard.writeText(t).then(()=>{const o=btn.textContent;btn.textContent='copied!';setTimeout(()=>btn.textContent=o,1200);});}
+function showRow(s){
+  const live=s.status==='live'; const cls=live?'avail':(s.status==='ended'?'sold':'review');
+  return `<div class="cl-card" style="grid-template-columns:1fr">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <div class="meta"><b>${esc(s.title)} <span class="pill ${cls}">${esc(s.status)}</span></b>
+        <span>${esc(s.break_type||'')}${s.scheduled_at?' · '+esc(new Date(s.scheduled_at).toLocaleString()):''}</span></div>
+      <div style="display:flex;gap:8px">
+        ${live?`<button class="btn ghost sm" onclick="setShow('${s.id}','ended')">End Show</button>`
+              :`<button class="btn gold sm" onclick="setShow('${s.id}','live')">Go Live</button>`}
+        <button class="linkbtn" style="color:#f3a3a9" onclick="delShow('${s.id}')">Delete</button>
+      </div>
+    </div>
+    <div class="ai-box" style="margin-top:10px">
+      <h4>📡 Stream from OBS / phone</h4>
+      <div class="diff"><b>Server URL:</b> <code>${esc(s.rtmps_url||'—')}</code> <button class="linkbtn" onclick="cp('${esc(s.rtmps_url||'')}',this)">copy</button></div>
+      <div class="diff"><b>Stream key:</b> <code>${esc(s.rtmps_key||'—')}</code> <button class="linkbtn" onclick="cp('${esc(s.rtmps_key||'')}',this)">copy</button></div>
+      <div class="diff" style="margin-top:6px;color:var(--muted)">Paste both into OBS (Settings &rarr; Stream &rarr; Custom). Hit Go Live here when you start broadcasting.</div>
+    </div>
+  </div>`;
+}
+async function loadShows(){
+  const el=$('#shows');
+  try{ const {shows}=await japi('/api/admin/shows');
+    el.innerHTML=shows.length?shows.map(showRow).join(''):'<p style="color:var(--muted)">No shows yet.</p>';
+  }catch(err){ el.innerHTML='<p class="msg err">'+esc(err.message)+'</p>'; }
+}
+async function createShow(e){e.preventDefault();const f=e.target;const m=$('#show-msg');const btn=$('button',f);
+  btn.disabled=true;btn.textContent='Creating…';m.className='msg';
+  try{ await japi('/api/admin/shows',{method:'POST',body:JSON.stringify(Object.fromEntries(new FormData(f)))});
+    f.reset();m.className='msg ok';m.textContent='Show created — copy your stream key below.';loadShows();
+  }catch(err){m.className='msg err';m.textContent=err.message;}
+  finally{btn.disabled=false;btn.textContent='Create Show + Stream Key';}
+  return false;}
+async function setShow(id,status){try{await japi('/api/admin/shows/'+id,{method:'PATCH',body:JSON.stringify({status})});loadShows();}catch(err){alert(err.message);}}
+async function delShow(id){if(!confirm('Delete this show and its stream input?'))return;try{await japi('/api/admin/shows/'+id,{method:'DELETE'});loadShows();}catch(err){alert(err.message);}}
+
+async function loadQueue(){
+  const el=$('#queue');
+  try{
+    const {cards}=await japi('/api/admin/review-queue');
+    cards.forEach(c=>{if(c.ai_suggestions)window._ai[c.id]=c.ai_suggestions;});
+    $('#q-count').textContent=cards.length;
+    if(!cards.length){el.innerHTML='<p style="color:var(--muted)">Nothing waiting. Upload a card above.</p>';return;}
+    el.innerHTML=cards.map(reviewCard).join('');
+  }catch(err){el.innerHTML='<p class="msg err">'+esc(err.message)+'</p>';}
+}
+
+function field(c,name,label,val){return `<div><label>${label}</label><input id="f-${name}-${c.id}" value="${esc(val==null?'':val)}"></div>`;}
+function reviewCard(c){
+  const gr=c.grader&&c.grader!=='Raw';
+  let ai='';
+  if(c.ai_suggestions){
+    const rows=Object.entries(c.ai_suggestions).map(([k,v])=>`<div class="diff"><b>${esc(k)}</b>: ${esc(typeof v==='object'?JSON.stringify(v):v)}</div>`).join('');
+    ai=`<div class="ai-box"><h4>💡 Claude's suggestions</h4>${rows}
+      <button class="btn gold sm" style="margin-top:10px" onclick='applyAI(${JSON.stringify(c.id)})'>Apply to form</button></div>`;
+  }
+  return `<div class="cl-card" style="grid-template-columns:1fr" id="rc-${c.id}">
+    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start">
+      <div style="display:flex;gap:8px">
+        <img class="thumb" src="${esc(c.image_url||'')}" alt="">
+        ${c.image_back_url?`<img class="thumb" src="${esc(c.image_back_url)}" alt="">`:''}
+      </div>
+      <div style="flex:1;min-width:260px">
+        <div class="oform">
+          <div><label>Title</label><input id="f-title-${c.id}" value="${esc(c.title)}"></div>
+          <div class="row">
+            <div><label>Category</label><select id="f-category-${c.id}">${opts(CATS,c.category)}</select></div>
+            <div><label>Price (USD)</label><input id="f-price-${c.id}" value="${(c.price_cents/100).toFixed(2)}"></div>
+          </div>
+          <div class="row">
+            <div><label>Grader</label><select id="f-grader-${c.id}">${opts(GRADERS,c.grader||'')}</select></div>
+            <div><label>Grade</label><input id="f-grade-${c.id}" value="${esc(c.grade&&gr?String(c.grade).replace(c.grader+' ',''):(c.grade||''))}"></div>
+          </div>
+          <div class="row">${field(c,'cert_number','Cert #',c.cert_number)}${field(c,'tag','Tag',c.tag)}</div>
+          <div class="row">${field(c,'player','Player',c.player)}${field(c,'year','Year',c.year)}</div>
+          ${field(c,'card_set','Set',c.card_set)}
+          <div><label>Notes</label><textarea id="f-notes-${c.id}">${esc(c.notes)}</textarea></div>
+        </div>
+        ${ai}
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+          <button class="btn sm" onclick='saveCard(${JSON.stringify(c.id)},false)'>Save</button>
+          <button class="btn gold sm" onclick='saveCard(${JSON.stringify(c.id)},true)'>Publish to Shop</button>
+          <button class="btn ghost sm" style="color:#f3a3a9;border-color:#5a2a2e" onclick='delCard(${JSON.stringify(c.id)})'>Delete</button>
+        </div>
+      </div>
+    </div></div>`;
+}
+window._ai={};
+function applyAI(id){const s=window._ai[id];if(!s)return;
+  for(const [k,v] of Object.entries(s)){const inp=document.getElementById('f-'+k+'-'+id);if(inp)inp.value=(typeof v==='object'?JSON.stringify(v):v);}}
+
+function gather(id){
+  const g=n=>{const el=document.getElementById('f-'+n+'-'+id);return el?el.value:undefined;};
+  return {title:g('title'),category:g('category'),price:parseFloat(g('price')||'0'),
+    grader:g('grader'),grade:g('grade'),cert_number:g('cert_number'),tag:g('tag'),
+    player:g('player'),year:g('year'),card_set:g('card_set'),notes:g('notes')};
+}
+async function saveCard(id,publish){
+  const body=gather(id);if(publish)body.needs_review=0;body.ai_suggestions=null;
+  try{await japi('/api/cards/'+id,{method:'PATCH',body:JSON.stringify(body)});loadAll();}
+  catch(err){alert(err.message);}
+}
+async function delCard(id){if(!confirm('Delete this card permanently?'))return;
+  try{await japi('/api/cards/'+id,{method:'DELETE'});loadAll();}catch(err){alert(err.message);}}
+
+async function loadInventory(){
+  const el=$('#inv');
+  try{
+    const {cards}=await japi('/api/cards?status=all');
+    cards.forEach(c=>{if(c.ai_suggestions)window._ai[c.id]=c.ai_suggestions;});
+    const pub=cards.filter(c=>!c.needs_review);
+    if(!pub.length){el.innerHTML='<p style="color:var(--muted)">No published cards yet.</p>';return;}
+    el.innerHTML=pub.map(c=>`
+      <div class="cl-card">
+        <img class="thumb${c.image_url?'':' ph'}" src="${esc(c.image_url||'')}" ${c.image_url?'':'style="display:flex"'} alt="">
+        <div class="meta"><b>${esc(c.title)}</b><span>${esc(c.grade)} · ${esc(c.category)} · $${c.price.toLocaleString()}</span></div>
+        <div class="right">
+          <select onchange="setStatus('${c.id}',this.value)" style="background:var(--ink-3);color:#fff;border:1px solid var(--line);border-radius:4px;padding:5px">
+            ${opts(['available','reserved','sold'],c.status)}
+          </select>
+          <div style="display:flex;gap:8px">
+            <button class="linkbtn" onclick="toReview('${c.id}')">Edit</button>
+            <button class="linkbtn" style="color:#f3a3a9" onclick="delCard('${c.id}')">Delete</button></div>
+        </div>
+      </div>`).join('');
+  }catch(err){el.innerHTML='<p class="msg err">'+esc(err.message)+'</p>';}
+}
+async function setStatus(id,status){try{await japi('/api/cards/'+id,{method:'PATCH',body:JSON.stringify({status})});}catch(err){alert(err.message);}}
+async function toReview(id){try{await japi('/api/cards/'+id,{method:'PATCH',body:JSON.stringify({needs_review:1})});loadAll();window.scrollTo(0,0);}catch(err){alert(err.message);}}
+
+boot();
+</script>
+</body>
+</html>

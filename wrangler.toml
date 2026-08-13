@@ -1,0 +1,20 @@
+name = "outlawtradingcards"
+pages_build_output_dir = "public"
+compatibility_date = "2024-11-06"
+
+[vars]
+CF_ACCOUNT_ID = "bf141f15f85d10cce3cfc6ba7bea8d4b"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "otc-db"
+database_id = "a3281e69-96af-43ae-aeb0-a1746febbf6b"
+
+[[kv_namespaces]]
+binding = "IMAGES_KV"
+id = "73c1120f4b0d44c683103d48fb568128"
+
+[[durable_objects.bindings]]
+name = "LIVE_ROOM"
+class_name = "LiveRoom"
+script_name = "otc-live"
